@@ -1,143 +1,114 @@
 const express = require('express');
-const cors = require('cors');
 const app = express();
-const PORT = 3200;
+const port = 3000;
 
-let idSeq = 3;
+// ==========================================
+// 1. DATA MENTAH DARI VENDOR (SIMULASI)
+// ==========================================
 
-let resto = [{
-    id: 1, vendor_name: 'Vendor C',
-    details: {
-        name: 'nasi boran', category: 'makanan'
-    },
-    pricing: {
-        base_price: 10000,
-        tax: 5000
-    }, stock: 100
-},
-{
-    id: 2, vendor_name: 'Vendor C',
-    details: {
-        name: 'es teh', category: 'minuman'
-    },
-    pricing: {
-        base_price: 5000,
-        tax: 1000
-    }, stock: 10
-}
+// Vendor A (String semua)
+const dataVendorA = [
+    {
+        "kd_produk": "A001",
+        "nm_brg": "Kopi Bubuk 100g",
+        "hrg": "15000",
+        "ket_stok": "ada"
+    }
 ];
 
+// Vendor B (Standard)
+const dataVendorB = [
+    {
+        "sku": "TSHIRT-001",
+        "productName": "Kaos Ijen Crater",
+        "price": 75000,
+        "isAvailable": true
+    }
+];
 
-//===MIDDLEWARE===
-app.use(cors());
-app.use(express.json());
+// Vendor C (Nested & Complex)
+const dataVendorC = [
+    {
+        "id": 501,
+        "details": {
+            "name": "Nasi Tempong",
+            "category": "makana"
+        },
+        "pricing": {
+            "base_price": 20000,
+            "tax": 2000
+        },
+        "stock": 50
+    }
+];
 
+// ==========================================
+// 2. LOGIKA INTEGRASI (Tugas Mahasiswa 4)
+// ==========================================
 
-app.get('/status', (req, res) => {
-    res.json({
-        ok: true,
-        service: 'resto-kuliner',
-        time: new Date().toISOString()
-    });
-});
+app.get('/api/products', (req, res) => {
+    let finalOutput = [];
 
-app.get('/resto', (req, res) => {
-    const processedResto = resto.map(item => {
-        let final_name = item.details.name;
-        if (item.vendor_name === "Vendor C" && item.details.category === "makanan") {
-            final_name = item.details.name + "(Recommended)";
-        }
+    // --- PROSES VENDOR A (WARUNG LEGACY) ---
+    const processedA = dataVendorA.map(item => {
+        // Logika Bisnis: Diskon 10%
+        const hargaAsli = parseInt(item.hrg); // Konversi String ke Number
+        const hargaDiskon = hargaAsli - (hargaAsli * 0.10);
+
         return {
-            ...item,
-            details: {
-                name: final_name
-            }
+            id: item.kd_produk,
+            nama: item.nm_brg,
+            harga_final: Math.floor(hargaDiskon), // Type Safety: Pastikan Integer
+            status: (item.ket_stok === 'ada') ? 'Tersedia' : 'Habis', // Standardisasi Status
+            sumber: 'Vendor A'
         };
     });
-    res.json(processedResto);
 
-});
+    // --- PROSES VENDOR B (DISTRO MODERN) ---
+    const processedB = dataVendorB.map(item => {
+        return {
+            id: item.sku,
+            nama: item.productName,
+            harga_final: item.price, // Sudah number, aman
+            status: item.isAvailable ? 'Tersedia' : 'Habis',
+            sumber: 'Vendor B'
+        };
+    });
 
-app.get('/resto/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const item = resto.find(m => m.id === id);
-    if (!item) return res.status(404).json({ error: 'daftar menu tidak ditemukan' });
-    let final_name = item.details.name;
-    if (item.vendor_name === "Vendor C" && item.details.category === "makanan") {
-        final_name = item.details.name + " (Recommended)";
-    }
-
-    const processedItem = {
-        ...item,
-        details: {
-            name: final_name
+    // --- PROSES VENDOR C (RESTO) ---
+    const processedC = dataVendorC.map(item => {
+        // Data Mapping: Akses Nested Object
+        let namaProduk = item.details.name;
+        
+        // Logika Bisnis: Label Recommended
+        if (item.details.category === 'makanan') {
+            namaProduk += " (Recommended)";
         }
-    };
-    res.json(processedItem);
+
+        // Hitung Total Harga (Base + Tax)
+        const totalHarga = item.pricing.base_price + item.pricing.tax;
+
+        return {
+            id: String(item.id), // Konversi ke string agar konsisten dengan ID lain
+            nama: namaProduk,
+            harga_final: totalHarga, // Type Safety: Integer
+            status: (item.stock > 0) ? 'Tersedia' : 'Habis',
+            sumber: 'Vendor C'
+        };
+    });
+
+    // Gabungkan semua data
+    finalOutput = [...processedA, ...processedB, ...processedC];
+
+    // Kirim response JSON
+    res.json({
+        message: "Data Integration Success",
+        total_data: finalOutput.length,
+        data: finalOutput
+    });
 });
 
-app.post('/resto', (req, res) => {
-    const body = req.body || {};
-    const { vendor_name = 'Unknown', name, category, base_price, tax, stock = 0} = req.body || {};
-    if (!name || !category || !base_price || !tax) {
-        return res.status(400).json({ error: 'mohon isi data nya harus lengkap!' });
-    }
-    const newResto = {
-        id: idSeq++, vendor_name,
-        details: { name, category },
-        pricing: { base_price, tax },
-        stock
-    };
-    resto.push(newResto);
-    res.status(201).json(newResto);
-});
-
-app.put('/resto/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const restoIndex = resto.findIndex(r => r.id === id);
-    if (restoIndex === -1) {
-        return res.status(404).json({
-            error: 'resto tidak ditemukan!'
-        });
-    }
-    const existingResto = resto[restoIndex];
-    const { vendor_name, name, category, base_price, tax, stock } = req.body || {};
-    const updatedResto = {
-        id: id,
-        vendor_name: vendor_name || existingResto.vendor_name,
-        details: {
-            name: name || existingResto.details.name,
-            category: category || existingResto.details.category
-        },
-        pricing: {
-            base_price: base_price || existingResto.pricing.base_price,
-            tax: tax || existingResto.pricing.tax
-        },
-        stock: stock !== undefined ? stock : existingResto.stock
-    }
-    resto[restoIndex] = updatedResto;
-    res.json(updatedResto);
-});
-
-app.delete('/resto/:id', (req, res) => {
-    const id = Number(req.params.id);
-    const restoIndex = resto.findIndex(r => r.id === id);
-    if (restoIndex === -1) {
-        return res.status(404).json({ error: 'resto tidak ditemukan' });
-    }
-    resto.splice(restoIndex, 1);
-    res.status(204).send();
-});
-
-app.use((req, res) => {
-    res.status(404).json({ error: 'rute tidak ditemukan' });
-});
-
-app.use((err, req, res, _next) => {
-    console.error('[ERROR]', err);
-    res.status(500).json({ error: 'terjadi kesalahan internal server' });
-});
-
-app.listen(PORT, () => {
-    console.log(`Server aktif di http://localhost:${PORT}/resto`);
+// Jalankan Server
+app.listen(port, () => {
+    console.log(`Server Integrasi berjalan di http://localhost:${port}/api/products`);
 });
