@@ -42,46 +42,22 @@ app.get('/status', (req, res) => {
 });
 
 app.get('/resto', (req, res) => {
-    const processedResto = resto.map(item => {
-        let final_name = item.details.name;
-        if (item.vendor_name === "Vendor C" && item.details.category === "makanan") {
-            final_name = item.details.name + "(Recommended)";
-        }
-        return {
-            ...item,
-            details: {
-                name: final_name
-            }
-        };
-    });
-    res.json(processedResto);
+    res.json(resto);
 
 });
 
 app.get('/resto/:id', (req, res) => {
     const id = Number(req.params.id);
     const item = resto.find(m => m.id === id);
-    if (!item) return res.status(404).json({ error: 'daftar menu tidak ditemukan' });
-    let final_name = item.details.name;
-    if (item.vendor_name === "Vendor C" && item.details.category === "makanan") {
-        final_name = item.details.name + " (Recommended)";
-    }
-
-    const processedItem = {
-        ...item,
-        details: {
-            name: final_name
-        }
-    };
-    res.json(processedItem);
+    if (!item) return res.status(404).json({ error: 'Data tidak ditemukan' });
+    res.json(item);
 });
 
 app.post('/resto', (req, res) => {
-    const body = req.body || {};
-    const { vendor_name = 'Unknown', name, category, base_price, tax, stock = 0} = req.body || {};
+    const { vendor_name, name, category, base_price, tax, stock } = req.body;
     if (!name || !category || !base_price || !tax) {
         return res.status(400).json({ error: 'mohon isi data nya harus lengkap!' });
-    }
+    }3
     const newResto = {
         id: idSeq++, vendor_name,
         details: { name, category },
@@ -91,6 +67,7 @@ app.post('/resto', (req, res) => {
     resto.push(newResto);
     res.status(201).json(newResto);
 });
+
 
 app.put('/resto/:id', (req, res) => {
     const id = Number(req.params.id);
