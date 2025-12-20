@@ -1,0 +1,85 @@
+{
+	"info": {
+		"_postman_id": "01b02cb6-4fa1-4268-8309-f7276dce53da",
+		"name": "vendor C",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "48009584",
+		"_collection_link": "https://nurbintang494-7821958.postman.co/workspace/Nur-Bintang's-Workspace~8d314349-6698-4f35-876a-10c8b09e69af/collection/48009584-01b02cb6-4fa1-4268-8309-f7276dce53da?action=share&source=collection_link&creator=48009584"
+	},
+	"item": [
+		{
+			"name": "resto",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "resto1",
+			"request": {
+				"method": "GET",
+				"header": []
+			},
+			"response": []
+		},
+		{
+			"name": "resto",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3200/resto/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3200",
+					"path": [
+						"resto",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resto",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3200/resto",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3200",
+					"path": [
+						"resto"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "resto",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:3200/resto",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "3200",
+					"path": [
+						"resto"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
