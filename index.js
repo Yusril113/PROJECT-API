@@ -4,16 +4,12 @@ const { Pool } = pkg;
 import 'dotenv/config';
 
 const app = express();
-const port = 3000;
-
-// middleware
 app.use(express.json());
 
 // ==========================================
-// 1. DATA MENTAH DARI VENDOR (SIMULASI)
+// DATA VENDOR (SAMA PERSIS)
 // ==========================================
 
-// Vendor A (String semua)
 const dataVendorA = [
     {
         "kd_produk": "A001",
@@ -23,7 +19,6 @@ const dataVendorA = [
     }
 ];
 
-// Vendor B (Standard)
 const dataVendorB = [
     {
         "sku": "TSHIRT-001",
@@ -33,7 +28,6 @@ const dataVendorB = [
     }
 ];
 
-// Vendor C (Nested & Complex)
 const dataVendorC = [
     {
         "id": 501,
@@ -50,13 +44,12 @@ const dataVendorC = [
 ];
 
 // ==========================================
-// 2. LOGIKA INTEGRASI (Tugas Mahasiswa 4)
+// ROUTES (SAMA PERSIS)
 // ==========================================
 
 app.get('/api/products', (req, res) => {
     let finalOutput = [];
 
-    // --- PROSES VENDOR A (WARUNG LEGACY) ---
     const processedA = dataVendorA.map(item => {
         const hargaAsli = parseInt(item.hrg);
         const hargaDiskon = hargaAsli - (hargaAsli * 0.10);
@@ -70,18 +63,14 @@ app.get('/api/products', (req, res) => {
         };
     });
 
-    // --- PROSES VENDOR B (DISTRO MODERN) ---
-    const processedB = dataVendorB.map(item => {
-        return {
-            id: item.sku,
-            nama: item.productName,
-            harga_final: item.price,
-            status: item.isAvailable ? 'Tersedia' : 'Habis',
-            sumber: 'Vendor B'
-        };
-    });
+    const processedB = dataVendorB.map(item => ({
+        id: item.sku,
+        nama: item.productName,
+        harga_final: item.price,
+        status: item.isAvailable ? 'Tersedia' : 'Habis',
+        sumber: 'Vendor B'
+    }));
 
-    // --- PROSES VENDOR C (RESTO) ---
     const processedC = dataVendorC.map(item => {
         let namaProduk = item.details.name;
 
@@ -89,12 +78,10 @@ app.get('/api/products', (req, res) => {
             namaProduk += " (Recommended)";
         }
 
-        const totalHarga = item.pricing.base_price + item.pricing.tax;
-
         return {
             id: String(item.id),
             nama: namaProduk,
-            harga_final: totalHarga,
+            harga_final: item.pricing.base_price + item.pricing.tax,
             status: (item.stock > 0) ? 'Tersedia' : 'Habis',
             sumber: 'Vendor C'
         };
@@ -109,10 +96,7 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-// ==========================================
-// 3. KONEKSI DATABASE NEON (TEST)
-// ==========================================
-
+// TEST DATABASE
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
 });
@@ -125,25 +109,9 @@ app.get('/test-db', async (req, res) => {
             time: result.rows[0].now
         });
     } catch (err) {
-        res.status(500).json({
-            status: 'error',
-            message: err.message
-        });
+        res.status(500).json({ message: err.message });
     }
 });
 
-// ==========================================
-// 4. JALANKAN SERVER
-// ==========================================
-
-// Kondisi agar app.listen hanya jalan di lokal, tidak bentrok saat di Vercel
-if (process.env.NODE_ENV !== 'production') {
-    app.listen(port, () => {
-        console.log(`Server berjalan di:`);
-        console.log(`- http://localhost:${port}/api/products`);
-        console.log(`- http://localhost:${port}/test-db`);
-    });
-}
-
-// Export default wajib untuk hosting di Vercel
+// ❌ JANGAN app.listen()
 export default app;

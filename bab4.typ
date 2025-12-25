@@ -1,11 +1,13 @@
 = 1. Persiapan Awal (The Setup)
-Bagian paling atas adalah proses "menyiapkan alat kerja":
+Bagian paling atas adalah proses menyiapkan alat kerja:
+
+install "npm init" untuk package nodejs nya  
 
 Express: Kerangka kerja (framework) untuk membuat server.
 
 CORS: Izin agar server ini bisa diakses oleh aplikasi lain (misal dari browser atau website).
 
-PORT (3200): Nomor "pintu" di komputer kamu tempat server ini berjalan.
+PORT (3200): Nomor pintu di komputer kamu tempat server ini berjalan.
 
 idSeq: Sebuah penghitung otomatis agar setiap data baru punya ID unik yang berbeda.
 
@@ -23,3 +25,5 @@ PUT	/resto/:id :	Mengubah atau memperbaiki data menu yang sudah ada.
 DELETE	/resto/:id :	Menghapus menu dari daftar.
 
 = 4. cara menjalankan 
+untuk mempermudah pengembangan program perlu untuk install nodemon (npm install --save-dev nodemon)
+dan untuk mejalankan program dengan peritah "npx nodemon server.js". 
