@@ -1,48 +1,27 @@
-const express = require('express');
-const cors = require('cors'); 
+const express = require("express");
+const fs = require("fs");
 const app = express();
-const PORT = 3002; 
+const PORT = 3001;
 
+app.get("/vendorA/products", (req, res) => {
+    try {
+        const raw = fs.readFileSync("vendorA.json", "utf-8");
+        const data = JSON.parse(raw);
+        const normalized = data.map(item => ({
+            id: item.kd_produk,
+            nama: item.nm_brg.trim(),
+            harga_final: parseInt(item.hrg),
+            status: item.ket_stok === "ada" ? "Tersedia" : "Habis",
+            sumber: "Vendor A"
+        }));
 
-app.use(express.json()); 
-app.use(cors());
+        res.json(normalized);
 
-
-let vendorBData = [ 
-  {
-    "sku": "TSHIRT-001",
-    "productName": "Kaos Ijen Crater",
-    "price": 75000, 
-    "isAvailable": true 
-  },
-  
-];
-
-app.get('/api/vendorB/products', (req, res) => {
-  res.json(vendorBData);
-});
-
-app.post('/api/vendorB/products', (req, res) => {
-    
-    const newItem = req.body; 
-
-    
-    if (!newItem.sku || !newItem.productName || newItem.price === undefined) {
-        return res.status(400).json({ 
-            error: 'Data produk harus lengkap: sku, productName, dan price wajib diisi.' 
-        });
+    } catch (err) {
+        res.status(500).json({ error: "Gagal memproses data Vendor A", detail: err.message });
     }
-    vendorBData.push(newItem);
-
-    res.status(201).json({ 
-        message: 'Produk berhasil ditambahkan', 
-        data: newItem 
-    });
 });
-
 
 app.listen(PORT, () => {
-  console.log(`✅ Vendor B API AKTIF di http://localhost:${PORT}`);
-  console.log(`GET Endpoint: http://localhost:${PORT}/api/vendorB/products`);
-  console.log(`POST Endpoint: http://localhost:${PORT}/api/vendorB/products`);
+    console.log(`Vendor A API running at http://localhost:${PORT}/vendorA/products`);
 });
